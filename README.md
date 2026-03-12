@@ -61,17 +61,17 @@ Uses Stockfish engine to calculate the best move in real-time.
 
 # Contributing
 
-Currently experimental.
+- Currently experimental.
 
-Fork and submit pull requests for improvements.
+- Fork and submit pull requests for improvements.
 
-Suggestions welcome for:
+- Suggestions welcome for:
 
-Multi-move visualization
+  * Multi-move visualization
 
-Smarter arrow/line drawing
+  * Smarter arrow/line drawing
 
-Dynamic toggling UI
+  * Dynamic toggling UI
 
 # License
 
