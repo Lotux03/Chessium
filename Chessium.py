@@ -4,6 +4,7 @@ from selenium.common.exceptions import StaleElementReferenceException
 import chess
 import chess.engine
 import time
+import os
 
 ENGINE_PATH = "stockfish.exe"
 
@@ -11,6 +12,7 @@ driver = webdriver.Chrome()
 driver.get("https://www.chess.com/play/online")
 
 engine = chess.engine.SimpleEngine.popen_uci(ENGINE_PATH)
+engine.configure({"Threads": 2, "Hash": 128})
 
 piece_map = {
     "wp": "P", "wr": "R", "wn": "N", "wb": "B", "wq": "Q", "wk": "K",
@@ -21,7 +23,7 @@ def read_board():
     board = chess.Board(None)
     pieces = driver.find_elements(By.CSS_SELECTOR, ".piece")
     
-    print("\n--- BOARD DETECTED ---")
+    # print("\n--- BOARD DETECTED ---")
     
     for p in pieces:
         try:
@@ -45,8 +47,8 @@ def read_board():
         chess_sq = chess.square(file_index, rank_index)
         board.set_piece_at(chess_sq, chess.Piece.from_symbol(piece_symbol))
 
-    print(board)
-    print("FEN:", board.fen())
+    # print(board)
+    # print("FEN:", board.fen())
     return board
 
 def square_to_xy(sq):
@@ -171,28 +173,49 @@ def toggle_display(mode="arrows"):
     """
     driver.execute_script(js)
 
-# Main loop
+oldboard = chess.Board(None)
+oldbestmove = ""
+oldstart = ""
+oldend = ""
+boardstatus = "..."
+bestmovestatus = "..."
+
+def printstatus(board, bestmove):
+    global oldboard, oldbestmove
+
+    if (board != oldboard or bestmove != oldbestmove):
+        os.system("cls")
+        print(f"Board: ", board)
+        print(f"Best Move:", bestmove)
+        oldboard = board
+        oldbestmove = bestmove
+
+loop = 0
+
 while True:
-    try:
-        board = read_board()
-    except Exception as e:
-        print("Error reading board:", e)
-        continue
+    while (loop != 1):
+        printstatus(boardstatus, bestmovestatus) # print best move out to user
 
-    try:
-        result = engine.play(board, chess.engine.Limit(time=0.2))
+        board = read_board() # Check for board
+        if board.piece_map(): # if board
+            boardstatus = "Good"
+        else: # else 
+            boardstatus = "Missing..." # tell the user no board found and wait for a board
+            continue
+
+        try:
+            result = engine.play(board, chess.engine.Limit(time=0.2))
+        except chess.engine.EngineTerminatedError:
+            engine = chess.engine.SimpleEngine.popen_uci(ENGINE_PATH)
+            engine.configure({"Threads": 2, "Hash": 128})
+            continue
+
         best_move = result.move.uci()
+        bestmovestatus = best_move
         start, end = best_move[:2], best_move[2:]
-
-        # Toggle: show highlights or arrows
-        # toggle_display("highlights")
-        # draw_highlight(end)
-
-        toggle_display("arrows")
-        draw_arrow_line(start, end)
-    except Exception as e:
-        print("Engine error:", e)
-        # engine.quit()
-        engine = chess.engine.SimpleEngine.popen_uci(ENGINE_PATH)
-
-    time.sleep(3)
+            
+        if (oldstart != start and oldend != end): # if not best move arrow drawn
+            toggle_display("arrows")
+            draw_arrow_line(start, end) # draw best move 
+            oldstart = start
+            oldend = end
