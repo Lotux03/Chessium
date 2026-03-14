@@ -11,7 +11,7 @@ import time
 import os
 
 
-ENGINE_PATH = "stockfish.exe"
+ENGINE_PATH = os.path.join(os.path.dirname(__file__), "stockfish.exe")
 
 # driver = webdriver.Chrome()
 from selenium.webdriver.chrome.options import Options
@@ -581,7 +581,7 @@ while True:
             
         
         if bot_enabled():
-            delay = random.randint(1, 15)
+            delay = random.randint(1, 3)
             print(f"Waiting {delay} seconds before move...")
             time.sleep(delay)
             time.sleep(0.1)
