@@ -5,9 +5,11 @@
 Chessium transforms online chess boards into interactive tactical maps. See every move, track engine suggestions, and visualize your game like a pro. Built to run in Chromium-based browsers, Chessium works alongside Stockfish for real-time move analysis.
 
 # Features
+- [x] Autobot
+
 - [x] Draw arrows from one square to another.
 
-- [x] Highlight specific squares dynamically.
+- [ ] Highlight specific squares dynamically.
 
 + [x] Toggle between arrows and highlights.
 
