@@ -2,6 +2,7 @@ from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium import webdriver
+import tkinter as tk
 import chess.engine
 import random
 import chess
@@ -341,6 +342,24 @@ def gendelay():
     else:
         delay = random.randint(5, 15)
 
+Arrows = False
+ArrowsButtonText = "Arrows toggle"
+
+plugins = {
+    Arrows: True,
+}
+
+def cheat1():
+    global plugins, ArrowsButtonText
+    if plugins[Arrows] == True:
+        plugins[Arrows] = False
+        #ArrowsButtonText = "Arrows: off"
+
+    else:
+        plugins[Arrows] = True
+        #ArrowsButtonText = "Arrows: on"
+
+
 while True:
     while (loop != 1):
         driver.execute_script(js_add_toggle)
@@ -366,9 +385,9 @@ while True:
 
         PLAY_AS = get_play_side()
 
-        if turn != PLAY_AS:
-            time.sleep(0.5)
-            continue
+        #if turn != PLAY_AS:
+        #    time.sleep(0.5)
+        #    continue
 
         try:
             result = engine.play(board, chess.engine.Limit(time=0.2))
@@ -380,13 +399,14 @@ while True:
         best_move = result.move.uci()
         bestmovestatus = best_move
         start, end = best_move[:2], best_move[2:]
-            
-        if (oldstart != start or oldend != end): # if not best move arrow drawn
-            toggle_display("arrows")
 
-            draw_arrow_line(start, end, best_move) # draw best move 
-            oldstart = start
-            oldend = end
+        if (plugins[Arrows] == True):  
+            if (oldstart != start or oldend != end): # if not best move arrow drawn
+                toggle_display("arrows")
+
+                draw_arrow_line(start, end, best_move) # draw best move 
+                oldstart = start
+                oldend = end
             
         
         if bot_enabled():
