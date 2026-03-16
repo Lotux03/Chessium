@@ -9,13 +9,19 @@ Chessium transforms online chess boards into interactive tactical maps. See ever
 
 - [x] Draw arrows from one square to another.
 
+- [x] Ad Blocker
+
+- [x] Evaluation Bar
+
+- [x] Plugin integration for community
+
 - [ ] Highlight specific squares dynamically.
 
-+ [x] Toggle between arrows and highlights.
++ [ ] Toggle between arrows and highlights.
 
 - [x] Supports real-time Stockfish integration for move suggestions.
 
-- [x] Fully browser-based overlay—works on chess.com and other sites.
+- [x] Fully browser-based overlay—works on chess.com.
 
 - [x] Lightweight and easy to extend.
 
