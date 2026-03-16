@@ -33,17 +33,17 @@ Clone this repository:
 
 `cd Chessium`
 
-Install dependencies (Python + Selenium + Stockfish):
+Install dependencies:
 
-`pip install selenium chess`
+Open `Install Dependencies.bat`
 
 Make sure you have Chromium/Chrome installed and a Stockfish engine executable (stockfish.exe) in your project folder.
 
 # Usage
 
-### Run the Python script:
+### Run the Batch script:
 
-`python Chessium.py`
+Open `Run.bat`
 
 It should open then [Chess.com](https://www.chess.com/play/) for you.
 
@@ -65,7 +65,10 @@ Uses Stockfish engine to calculate the best move in real-time.
 
 # Screenshots
 
-(Optional: Add screenshots of arrows and highlights on the chess board here)
+<img width="729" height="727" alt="Screenshot 2026-03-11 191322" src="https://github.com/user-attachments/assets/43dbda6f-4960-40c3-8afb-e5abd8dbfb83" />
+<img width="1915" height="1027" alt="image" src="https://github.com/user-attachments/assets/38d6b487-676c-4c3c-94df-5c4ba813afd5" />
+<img width="1917" height="1028" alt="image" src="https://github.com/user-attachments/assets/57cfb3fb-b99a-4c11-9268-5aecacc78639" />
+<img width="1911" height="1026" alt="image" src="https://github.com/user-attachments/assets/213b074a-cc1b-4a0e-96c8-3beb9caa6036" />
 
 # Contributing
 
@@ -84,3 +87,4 @@ Uses Stockfish engine to calculate the best move in real-time.
 # License
 
 MIT License © 2026
+
