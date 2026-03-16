@@ -2,6 +2,7 @@ from plugins.base import Plugin
 from selenium.webdriver.common.action_chains import ActionChains
 import time
 import random
+import chess
 
 class Plugin(Plugin):
     name = "Auto Move [wip]"
@@ -11,35 +12,44 @@ class Plugin(Plugin):
         self.move_count = 0
         self.count = 0
 
-    def on_best_move(self, move, board, turn, context):
+    def on_best_move(self, engine, board_reader, overlays, plugins, driver, context):
+        # Check if enabled
         if not self.enabled:
             return
-
+        
+        # Variables
+        move = context['move']
+        turn = board_reader.detect_turn()
+        player_color = board_reader.detect_player_color()
         driver = context["driver"]
         board_el = driver.find_element("css selector", "wc-chess-board")
-
         start = move[:2]
         end = move[2:]
+        flipped = False
 
+        # Set a delay for move
         if self.count == 1:
             self.count = 0
-            #time.sleep(self.delay())
+            time.sleep(self.delay())
         else:
             self.count = 1
             return
     
-        if(turn):
+        # Check if its my turn to move
+        if(turn == player_color):
+            if (turn == chess.BLACK):
+                flipped = True
+            # Move
             self.move_count += 1
-            self.move_piece(start, end, board_el, driver)
+            self.move_piece(start, end, board_el, driver, flipped)
 
-    def move_piece(self, start, end, board_el, driver):
-        self.click_square(start, board_el, driver)
+    def move_piece(self, start, end, board_el, driver, flipped):
+        self.click_square(start, board_el, driver, flipped)
         time.sleep(0.05)
-        self.click_square(end, board_el, driver)
+        self.click_square(end, board_el, driver, flipped)
 
-    def click_square(self, square, board_el, driver):
-        #flipped = "flipped" in (board_el.get_attribute("class") or "")
-        x, y = self.square_to_xy_move(square, False)#flipped)
+    def click_square(self, square, board_el, driver, flipped):
+        x, y = self.square_to_xy_move(square, flipped) #flipped)
 
         rect = board_el.rect
         px = rect["width"] * x
@@ -71,5 +81,5 @@ class Plugin(Plugin):
         elif self.move_count <= 15:
             num = random.randint(6, 10)
         else:
-            num = random.randint(3, 25)
+            num = random.randint(3, 10)
         return num

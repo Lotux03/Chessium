@@ -7,7 +7,6 @@ import os
 class ChessEngine:
 
     def __init__(self):
-        
         path = os.path.join(os.path.dirname(__file__), "../", "stockfish.exe")
         path = os.path.abspath(path)
         assert os.path.exists(path), f"Engine not found at {path}"
@@ -45,6 +44,10 @@ class ChessEngine:
             self.restart()
 
             return None
+        
+    def get_score(self, board):
+        info = self.engine.analyse(board, chess.engine.Limit(time=0.2))
+        return info
 
     def restart(self):
         self.engine.quit()

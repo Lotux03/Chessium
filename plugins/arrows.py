@@ -6,7 +6,8 @@ class Plugin(Plugin):
 
     name = "Best Move Arrows"
 
-    def on_best_move(self, move, board, turn, context):
+    def on_best_move(self, engine, board_reader, overlays, plugins, driver, context):
+        move = context['move']
         start = move[:2]
         end = move[2:]
 

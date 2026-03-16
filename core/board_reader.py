@@ -100,3 +100,18 @@ class BoardReader:
         except Exception as e:
             print("detect_active_turn error:", e)
             return None
+        
+    def detect_player_color(self):
+        try:
+            board = self.driver.find_element(By.CSS_SELECTOR, "wc-chess-board")
+
+            classes = board.get_attribute("class") or ""
+
+            if "flipped" in classes:
+                return chess.BLACK
+            else:
+                return chess.WHITE
+
+        except Exception as e:
+            print("[BOARD_READER] detect_player_color error:", e)
+            return None
