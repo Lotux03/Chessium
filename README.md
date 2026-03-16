@@ -1,10 +1,8 @@
 # Install
 Get the windows-x86-64 version of [Stockfish](https://github.com/official-stockfish/Stockfish/releases/download/sf_18/stockfish-windows-x86-64.zip)
 
-Put the Executable from Stockfish into a folder with Chessium.py
+Put the Executable from Stockfish into a folder with Chessium.py (next to `main.py`)
 
-Open Chessium.py in a terminal open in that directory.
+Open `Install Dependencies.bat`
 
-Run `./chessium.py`
-
-Unless running a terminal with administrative privlages, then run" `chessium.py`
+Then Open `Run.bat`
