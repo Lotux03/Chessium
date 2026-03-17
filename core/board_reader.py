@@ -133,4 +133,29 @@ class BoardReader:
             if abs(old_pieces - new_pieces) > 10:
                 return True
 
-        return False
+        return False       
+
+    def get_game_over_state(self):
+        try:
+            modal = self.driver.find_element(
+                By.CSS_SELECTOR,
+                ".board-modal-component.game-over-modal-container"
+            )
+
+            if not modal.is_displayed():
+                return None
+
+            title = modal.find_element(By.CSS_SELECTOR, ".header-title-component").text
+            subtitle = modal.find_element(By.CSS_SELECTOR, ".header-subtitle-first-line").text
+
+            print(f"[GAME OVER] {title} - {subtitle}")
+
+            return {
+                "title": title,          # "You Won!" / "You Lost"
+                "reason": subtitle       # "game abandoned", "checkmate", etc
+            }
+
+        except Exception as e:
+            # print("[BOARD_READER] get_game_over_state error:", e)
+            return None
+        

@@ -27,12 +27,48 @@ class Plugin(Plugin):
             if (!document.getElementById("chessium-adblock")) {
                 let style = document.createElement("style");
                 style.id = "chessium-adblock";
-                style.innerHTML = "#board-layout-ad { display:none !important; }";
+                style.innerHTML = `
+                    #board-layout-ad,
+                    #ad_unit,
+                    .game-over-ad-container-component,
+                    .game-over-ad-slot,
+                    [id^="google_ads_iframe_"] {
+                        display: none !important;
+                        visibility: hidden !important;
+                        opacity: 0 !important;
+                        pointer-events: none !important;
+                    }
+                `;
                 document.head.appendChild(style);
             }
 
-            let ad = document.getElementById("board-layout-ad");
-            if (ad) ad.remove();
+            // Hard remove known ads
+            let ids = [
+                "board-layout-ad",
+                "ad_unit"
+            ];
+
+            ids.forEach(id => {
+                let el = document.getElementById(id);
+                if (el) {
+                    el.remove();
+                    console.log("[AdBlock] Removed:", id);
+                }
+            });
+
+            // Remove dynamic ad containers
+            document.querySelectorAll(`
+                .game-over-ad-container-component,
+                .game-over-ad-slot,
+                iframe[id^="google_ads_iframe_"]
+            `).forEach(el => {
+                el.remove();
+            });
             """)
         except Exception as e:
             print("[AdBlock ERROR]", e)
+
+
+
+
+

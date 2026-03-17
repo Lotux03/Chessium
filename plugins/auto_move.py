@@ -5,7 +5,7 @@ import random
 import chess
 
 class Plugin(Plugin):
-    name = "Auto Move [wip]"
+    name = "Auto Move"
 
     def __init__(self):
         self.enabled = False

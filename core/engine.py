@@ -1,7 +1,7 @@
 import chess
 import chess.engine
 import os
-
+import threading
 
 class ChessEngine:
 
@@ -22,7 +22,12 @@ class ChessEngine:
             "Hash": 128
         })
 
+        self.lock = threading.Lock()
+
     def get_best_move(self, context):
+        if not self.lock.acquire(blocking=False):
+            print("[ENGINE] Skipping best move (engine busy)")
+            return None
 
         try:
             result = self.engine.play(
@@ -30,36 +35,45 @@ class ChessEngine:
                 chess.engine.Limit(time=0.2)
             )
 
-            move = result.move.uci()
+            return result.move.uci()
 
-            return move
-
-        except chess.engine.EngineTerminatedError:
-
-            print("Engine crashed. Restarting...")
-
-            self.restart()
-
-            return None
+        finally:
+            self.lock.release()
         
     def get_score(self, board):
+        if not self.lock.acquire(blocking=False):
+            print("[ENGINE] Skipping get score (engine busy)")
+            return None
+        
         info = self.engine.analyse(board, chess.engine.Limit(time=0.2))
         return info
     
     def analyse_position(self, board):
-        info = self.engine.analyse(
-            board,
-            chess.engine.Limit(time=0.2)
-        )
+        if not self.lock.acquire(blocking=False):
+            print("[ENGINE] Skipping analyse (engine busy)")
+            return None, None
 
-        score = info["score"]
-        move = None
+        try:
+            info = self.engine.analyse(
+                board,
+                chess.engine.Limit(time=0.2)
+            )
 
-        if "pv" in info and len(info["pv"]) > 0:
-            move = info["pv"][0].uci()
+            score = info.get("score")
+            move = None
 
-        return score, move
+            if "pv" in info and len(info["pv"]) > 0:
+                move = info["pv"][0].uci()
+
+            return score, move
+
+        finally:
+            self.lock.release()
 
     def restart(self):
+        if not self.lock.acquire(blocking=False):
+            print("[ENGINE] Skipping restart (engine busy)")
+            return None
+        
         self.engine.quit()
         self.__init__()

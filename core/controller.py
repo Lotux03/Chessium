@@ -32,13 +32,36 @@ class Controller:
 
         while self.running:
             try:
+                self.trigger_on_ui()
+
+                game_over = None
+                if (self.board_reader.get_game_over_state() != None):
+                    game_over = self.board_reader.get_game_over_state()
+
+                if game_over:
+                    print("[CONTROLLER] Game Over detected")
+
+                    # stop engine cleanly
+                    self.engine.restart()
+
+                    # reset internal state
+                    self.reset_game_state()
+
+                    # wait for new board to load
+                    new_board = self.wait_for_new_board()
+
+                    if new_board:
+                        self.board = new_board
+                        self.last_fen = new_board.board_fen()
+                        print("[CONTROLLER] Ready for new game")
+
+                    continue
+                
                 self.board = self.board_reader.read()
 
                 if not self.board.piece_map():
                     time.sleep(0.2)
                     continue
-
-                self.trigger_on_ui()
 
                 fen = self.board.board_fen()
 
@@ -48,7 +71,7 @@ class Controller:
                         self.info = None
                         self.move = None
                         # OPTIONAL:
-                        # self.engine.restart()
+                        self.engine.restart()
 
                 if fen != self.last_fen:
                     self.trigger_on_move()
@@ -115,7 +138,6 @@ class Controller:
                 continue
 
             try:
-
                 func(*args, **kwargs)
 
             except Exception as e:
@@ -135,3 +157,32 @@ class Controller:
             "driver": self.driver,
             "overlay": self.overlays
         }
+    
+    def reset_game_state(self):
+        print("[CONTROLLER] Resetting game state")
+
+        self.last_fen = None
+        self.board = None
+        self.info = None
+        self.move = None
+
+    def wait_for_new_board(self, timeout=10):
+        print("[CONTROLLER] Waiting for new board...")
+
+        start = time.time()
+
+        while time.time() - start < timeout:
+            board = self.board_reader.read()
+
+            if board and board.piece_map():
+                fen = board.board_fen()
+
+                # detect starting position or any valid fresh board
+                if len(fen) > 10:
+                    print("[CONTROLLER] New board detected")
+                    return board
+
+            time.sleep(0.3)
+
+        print("[CONTROLLER] Timeout waiting for new board")
+        return None
