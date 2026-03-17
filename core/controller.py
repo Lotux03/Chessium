@@ -1,9 +1,7 @@
 import logging
 import threading
 import time
-import chess.engine
 import chess
-import os
 import automation.browser as browser
 
 class Controller:
@@ -16,6 +14,10 @@ class Controller:
         self.plugins = plugins
         self.driver = driver
         self.browser = browser.Browser()
+        self.board = None
+        self.info = None
+        self.move = None
+        self.last_fen = None
 
         self.running = True
 
@@ -30,76 +32,75 @@ class Controller:
 
         while self.running:
             try:
+                self.board = self.board_reader.read()
 
-                board = self.board_reader.read()
-                if not board.piece_map():
+                if not self.board.piece_map():
                     time.sleep(0.2)
                     continue
 
+                self.trigger_on_ui()
 
-                context = {
-                    "overlay": self.overlays,
-                    "driver": self.driver,
-                    "engine": self.engine
-                }
+                fen = self.board.board_fen()
 
-                if(self.browser.site_loaded()):
-                    self.plugins.trigger("on_ui", context)
+                if self.last_fen:
+                    if self.board_reader.is_new_game(self.last_fen, fen):
+                        print("[CONTROLLER] New game detected")
+                        self.info = None
+                        self.move = None
+                        # OPTIONAL:
+                        # self.engine.restart()
 
+                if fen != self.last_fen:
+                    self.trigger_on_move()
+                    self.last_fen = fen
 
-
-                context = {
-                    "board": board,
-                    "overlay": self.overlays,
-                    "driver": self.driver,
-                    "engine": self.engine
-                }
-
-                # print(context)
-
-                # board update event
-                self.plugins.trigger("on_board", self.engine, self.board_reader, self.overlays, self.plugins, self.driver, context)
-
-                turn = self.board_reader.detect_turn()
-                if turn is None:
-                    continue
-                board.turn = turn
-
-                try:
-                    move = self.engine.get_best_move(board)
-                except:
-                    print("Engine crashed in controller. Restarting...")
-                    self.engine.restart()
-                    
-                    continue
-
-                if move:
-                    try:
-                        info = self.engine.get_score(board)
-                    except:
-                        print("Engine crashed in controller. Restarting...")
-                        self.engine.restart()
-                        continue
-
-                    context = {
-                        "score" : info["score"],
-                        "move" : move,
-                        "overlay": self.overlays,
-                        "driver": self.driver,
-                        "engine": self.engine
-                    }
-
-                    # print("running on best move")
-                    # engine result event
-                    self.plugins.trigger("on_best_move", self.engine, self.board_reader, self.overlays, self.plugins, self.driver, context)
+                self.trigger_on_best_move()
 
             except Exception as e:
-
                 logging.error("Controller error")
                 logging.error(e)
 
-
             time.sleep(0.2)
+
+    def trigger_on_ui(self):
+        if(self.browser.site_loaded()):
+            self.plugins.trigger("on_ui", self.create_context())
+
+    def trigger_on_best_move(self):
+        # Check if its the players turn turn
+        if not self.move:
+            return
+        
+        # Apply Context
+        context = self.create_context()
+            
+        self.plugins.trigger("on_best_move", context)
+
+    def trigger_on_move(self):
+        turn = self.board_reader.detect_turn()
+        if turn is None:
+            return
+        
+        self.board.turn = turn
+        
+        # Get move score
+        try:
+            score, move = self.engine.analyse_position(self.board)
+
+            if score is None or move is None:
+                return
+
+            self.info = score
+            self.move = move
+
+        except chess.engine.EngineTerminatedError:
+            print("[ENGINE] Engine terminated. Restarting...")
+            self.engine.restart()
+
+        except chess.engine.EngineError as e:
+            print("[ENGINE] Engine error:", e)
+        
+        self.plugins.trigger("on_board", self.create_context())
 
     def trigger(self, event, *args, **kwargs):
 
@@ -121,3 +122,16 @@ class Controller:
 
                 print(f"[PLUGIN ERROR] {plugin.name} -> {event}")
                 print(e)
+
+    def create_context(self):
+
+        return {
+            "score": self.info,
+            "move": self.move,
+            "engine": self.engine,
+            "board": self.board,
+            "board_reader": self.board_reader,
+            "plugins": self.plugins,
+            "driver": self.driver,
+            "overlay": self.overlays
+        }

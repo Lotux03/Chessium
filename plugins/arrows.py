@@ -6,14 +6,14 @@ class Plugin(Plugin):
 
     name = "Best Move Arrows"
 
-    def on_best_move(self, engine, board_reader, overlays, plugins, driver, context):
+    def on_best_move(self, context):
         move = context['move']
         start = move[:2]
         end = move[2:]
 
-        draw_arrow(start, end, move)
+        draw_arrow(start, end)
 
-def draw_arrow(start_sq, end_sq, move):
+def draw_arrow(start_sq, end_sq):
 
     driver = get_driver()
 

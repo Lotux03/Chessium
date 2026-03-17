@@ -1,5 +1,4 @@
 import logging
-
 from core.driver import start_driver
 from core.engine import ChessEngine
 from core.board_reader import BoardReader
@@ -7,17 +6,13 @@ from core.plugin_manager import PluginManager
 from core.controller import Controller
 from automation.overlays import OverlayManager
 from gui.tkinter_gui import GUI
-from core.driver import get_driver
-
 
 logging.basicConfig(
     # level=logging.DEBUG,
     format="[%(levelname)s] %(message)s"
 )
 
-
 def main():
-
     driver = start_driver()
 
     overlays = OverlayManager()
@@ -36,7 +31,6 @@ def main():
     controller.start_loop()
 
     gui.run()
-
 
 if __name__ == "__main__":
     main()

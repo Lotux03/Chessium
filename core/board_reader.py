@@ -115,3 +115,22 @@ class BoardReader:
         except Exception as e:
             print("[BOARD_READER] detect_player_color error:", e)
             return None
+
+    def is_new_game(self, old_fen, new_fen):
+        # Standard chess starting position
+        START_FEN = chess.Board().board_fen()
+
+        # Case 1: reset to starting position
+        if new_fen == START_FEN and old_fen != START_FEN:
+            return True
+
+        # Case 2: huge jump in position (game reload / new match)
+        if len(old_fen) > 0 and len(new_fen) > 0:
+            # compare piece counts
+            old_pieces = sum(c.isalpha() for c in old_fen)
+            new_pieces = sum(c.isalpha() for c in new_fen)
+
+            if abs(old_pieces - new_pieces) > 10:
+                return True
+
+        return False

@@ -1,6 +1,5 @@
 import chess
 import chess.engine
-import logging
 import os
 
 
@@ -23,17 +22,15 @@ class ChessEngine:
             "Hash": 128
         })
 
-    def get_best_move(self, board):
+    def get_best_move(self, context):
 
         try:
             result = self.engine.play(
-                board,
+                context["board"],
                 chess.engine.Limit(time=0.2)
             )
 
             move = result.move.uci()
-
-            # print(f"Engine move: {move}")
 
             return move
 
@@ -48,6 +45,20 @@ class ChessEngine:
     def get_score(self, board):
         info = self.engine.analyse(board, chess.engine.Limit(time=0.2))
         return info
+    
+    def analyse_position(self, board):
+        info = self.engine.analyse(
+            board,
+            chess.engine.Limit(time=0.2)
+        )
+
+        score = info["score"]
+        move = None
+
+        if "pv" in info and len(info["pv"]) > 0:
+            move = info["pv"][0].uci()
+
+        return score, move
 
     def restart(self):
         self.engine.quit()

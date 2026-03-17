@@ -12,12 +12,13 @@ class Plugin(Plugin):
         self.move_count = 0
         self.count = 0
 
-    def on_best_move(self, engine, board_reader, overlays, plugins, driver, context):
+    def on_best_move(self, context):
         # Check if enabled
         if not self.enabled:
             return
         
         # Variables
+        board_reader = context["board_reader"]
         move = context['move']
         turn = board_reader.detect_turn()
         player_color = board_reader.detect_player_color()

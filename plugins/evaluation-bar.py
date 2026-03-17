@@ -58,7 +58,7 @@ class Plugin(Plugin):
         board.parentElement.appendChild(container);
         """)
 
-    def on_best_move(self, engine, board_reader, overlays, plugins, driver, context):
+    def on_best_move(self, context):
         pov_score = context["score"]
 
         # numeric centipawns
@@ -73,7 +73,7 @@ class Plugin(Plugin):
             percent = 50 + (score / 1000 * 50)
             percent = max(0, min(100, percent))
 
-        self.update_eval(driver, percent)
+        self.update_eval(context["driver"], percent)
 
 
     def update_eval(self, driver, score):
