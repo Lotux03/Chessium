@@ -1,17 +1,16 @@
+import logging
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-import logging
 
-driver = None
+_driver = None
 
 
 def start_driver():
+    global _driver
 
-    global driver
-
-    if driver is not None:
+    if _driver is not None:
         logging.warning("Driver already started.")
-        return driver
+        return _driver
 
     logging.info("Starting Chrome driver...")
 
@@ -21,42 +20,34 @@ def start_driver():
     options.add_argument("--disable-dev-shm-usage")
 
     try:
-        driver = webdriver.Chrome(options=options)
-
-        driver.get("https://www.chess.com/play/online")
-
+        _driver = webdriver.Chrome(options=options)
+        _driver.get("https://www.chess.com/play/online")
         logging.info("Driver started successfully.")
-
     except Exception as e:
-
         logging.exception("Driver failed to start")
-        raise e
+        raise
 
-    return driver
+    return _driver
 
 
 def get_driver():
+    global _driver
 
-    global driver
-
-    if driver is None:
+    if _driver is None:
         logging.warning("Driver requested before initialization.")
-        driver = start_driver()
+        return start_driver()
 
-    return driver
+    return _driver
 
 
 def close_driver():
+    global _driver
 
-    global driver
-
-    if driver:
-
+    if _driver:
         logging.info("Closing driver")
-
         try:
-            driver.quit()
-        except:
-            logging.warning("Driver failed to close")
-
-        driver = None
+            _driver.quit()
+        except Exception:
+            logging.warning("Driver failed to close cleanly")
+        finally:
+            _driver = None

@@ -4,41 +4,28 @@ import tkinter as tk
 class GUI:
 
     def __init__(self, plugin_manager):
-
         self.plugins = plugin_manager.plugins
         self.root = tk.Tk()
         self.root.title("Chessium")
+        self._vars = {}
 
-        # store variables so they don't get garbage collected
-        self.vars = {}
-
-        title = tk.Label(self.root, text="Chessium Plugins", font=("Arial", 14))
-        title.pack(pady=5)
+        tk.Label(self.root, text="Chessium Plugins", font=("Arial", 14)).pack(pady=5)
 
         for plugin in self.plugins:
-
             var = tk.BooleanVar(value=plugin.enabled)
+            self._vars[plugin.name] = var
 
-            self.vars[plugin.name] = var
-
-            cb = tk.Checkbutton(
+            tk.Checkbutton(
                 self.root,
                 text=plugin.name,
                 variable=var,
-                command=lambda p=plugin, v=var: self.toggle(p, v)
-            )
+                command=lambda p=plugin, v=var: self._toggle(p, v)
+            ).pack(anchor="w", padx=10)
 
-            cb.pack(anchor="w", padx=10)
-
-            print(f"[GUI] Loaded plugin: {plugin.name}")
-
-    def toggle(self, plugin, var):
-
+    def _toggle(self, plugin, var):
         plugin.enabled = var.get()
-
-        print(f"[PLUGIN TOGGLE] {plugin.name} -> {plugin.enabled}")
+        print(f"[GUI] {plugin.name} -> {'on' if plugin.enabled else 'off'}")
 
     def run(self):
-
-        print("[GUI] Starting Tkinter loop")
+        print("[GUI] Starting")
         self.root.mainloop()

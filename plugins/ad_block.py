@@ -1,32 +1,33 @@
 from plugins.base import Plugin
-from selenium.webdriver.common.by import By
+
 
 class Plugin(Plugin):
     name = "Ad Block"
 
     def __init__(self):
         self.enabled = False
-        self.ready = False
+        self._injected = False
 
     def on_ui(self, context):
-        if not self.enabled:
-            return
-
         driver = context["driver"]
 
-        if not self.ready:
+        if not self._injected:
             try:
-                driver.find_element(By.CSS_SELECTOR, "wc-chess-board")
+                driver.find_element("css selector", "wc-chess-board")
+                self._injected = True
                 print("[AdBlock] Chess UI detected")
-                self.ready = True
-            except:
+            except Exception:
                 return
-            
+
+        self._remove_ads(driver)
+
+    def _remove_ads(self, driver):
         try:
             driver.execute_script("""
-            if (!document.getElementById("chessium-adblock")) {
-                let style = document.createElement("style");
-                style.id = "chessium-adblock";
+            // Inject persistent CSS to hide ad elements
+            if (!document.getElementById('chessium-adblock')) {
+                const style = document.createElement('style');
+                style.id = 'chessium-adblock';
                 style.innerHTML = `
                     #board-layout-ad,
                     #ad_unit,
@@ -35,40 +36,23 @@ class Plugin(Plugin):
                     [id^="google_ads_iframe_"] {
                         display: none !important;
                         visibility: hidden !important;
-                        opacity: 0 !important;
                         pointer-events: none !important;
                     }
                 `;
                 document.head.appendChild(style);
             }
 
-            // Hard remove known ads
-            let ids = [
-                "board-layout-ad",
-                "ad_unit"
-            ];
-
-            ids.forEach(id => {
-                let el = document.getElementById(id);
-                if (el) {
-                    el.remove();
-                    console.log("[AdBlock] Removed:", id);
-                }
+            // Hard-remove known ad elements from the DOM
+            ['board-layout-ad', 'ad_unit'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.remove();
             });
 
-            // Remove dynamic ad containers
             document.querySelectorAll(`
                 .game-over-ad-container-component,
                 .game-over-ad-slot,
                 iframe[id^="google_ads_iframe_"]
-            `).forEach(el => {
-                el.remove();
-            });
+            `).forEach(el => el.remove());
             """)
         except Exception as e:
-            print("[AdBlock ERROR]", e)
-
-
-
-
-
+            print(f"[AdBlock] Error: {e}")

@@ -1,79 +1,77 @@
-import chess
-import chess.engine
 import os
 import threading
+import chess
+import chess.engine
+
 
 class ChessEngine:
 
     def __init__(self):
-        path = os.path.join(os.path.dirname(__file__), "../", "stockfish.exe")
-        path = os.path.abspath(path)
-        assert os.path.exists(path), f"Engine not found at {path}"
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../stockfish.exe"))
+        assert os.path.exists(path), f"Stockfish not found at {path}"
 
-        print(f"Loading engine: {path}")
+        print(f"[ENGINE] Loading: {path}")
 
-        if not os.path.exists(path):
-            print("Stockfish not found")
+        self._path = path
+        self._lock = threading.Lock()
+        self._start()
 
-        self.engine = chess.engine.SimpleEngine.popen_uci(path)
+    def _start(self):
+        self.engine = chess.engine.SimpleEngine.popen_uci(self._path)
+        self.engine.configure({"Threads": 2, "Hash": 128})
 
-        self.engine.configure({
-            "Threads": 2,
-            "Hash": 128
-        })
-
-        self.lock = threading.Lock()
-
-    def get_best_move(self, context):
-        if not self.lock.acquire(blocking=False):
-            print("[ENGINE] Skipping best move (engine busy)")
-            return None
-
-        try:
-            result = self.engine.play(
-                context["board"],
-                chess.engine.Limit(time=0.2)
-            )
-
-            return result.move.uci()
-
-        finally:
-            self.lock.release()
-        
-    def get_score(self, board):
-        if not self.lock.acquire(blocking=False):
-            print("[ENGINE] Skipping get score (engine busy)")
-            return None
-        
-        info = self.engine.analyse(board, chess.engine.Limit(time=0.2))
-        return info
-    
     def analyse_position(self, board):
-        if not self.lock.acquire(blocking=False):
-            print("[ENGINE] Skipping analyse (engine busy)")
+        if not self._lock.acquire(blocking=False):
+            print("[ENGINE] Busy, skipping analysis")
             return None, None
 
         try:
-            info = self.engine.analyse(
-                board,
-                chess.engine.Limit(time=0.2)
-            )
-
+            info = self.engine.analyse(board, chess.engine.Limit(time=0.2))
             score = info.get("score")
-            move = None
-
-            if "pv" in info and len(info["pv"]) > 0:
-                move = info["pv"][0].uci()
-
+            move = info["pv"][0].uci() if info.get("pv") else None
             return score, move
-
         finally:
-            self.lock.release()
+            self._lock.release()
+
+    def get_best_move(self, board):
+        """Play a move directly via engine (used by auto-move plugin)."""
+        if not self._lock.acquire(blocking=False):
+            print("[ENGINE] Busy, skipping best move")
+            return None
+
+        try:
+            result = self.engine.play(board, chess.engine.Limit(time=0.2))
+            return result.move.uci()
+        finally:
+            self._lock.release()
 
     def restart(self):
-        if not self.lock.acquire(blocking=False):
-            print("[ENGINE] Skipping restart (engine busy)")
-            return None
-        
-        self.engine.quit()
-        self.__init__()
+        """Quit and restart the engine process cleanly."""
+        if not self._lock.acquire(blocking=False):
+            print("[ENGINE] Busy, skipping restart")
+            return
+
+        try:
+            self.engine.quit()
+        except Exception:
+            pass
+        finally:
+            self._lock.release()
+
+        self._start()
+        print("[ENGINE] Restarted")
+
+    def kill(self):
+        """Terminate the engine process."""
+        if not self._lock.acquire(blocking=False):
+            print("[ENGINE] Busy, skipping kill")
+            return
+
+        try:
+            self.engine.quit()
+        except Exception:
+            pass
+        finally:
+            self._lock.release()
+
+        print("[ENGINE] Killed")
