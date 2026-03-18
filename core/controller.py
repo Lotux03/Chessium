@@ -42,10 +42,11 @@ class Controller:
                     print("[CONTROLLER] Game Over detected")
 
                     # stop engine cleanly
-                    self.engine.restart()
+                    self.engine.kill()
 
                     # reset internal state
                     self.reset_game_state()
+
 
                     # wait for new board to load
                     new_board = self.wait_for_new_board()
@@ -54,6 +55,7 @@ class Controller:
                         self.board = new_board
                         self.last_fen = new_board.board_fen()
                         print("[CONTROLLER] Ready for new game")
+                        self.engine.__init__()
 
                     continue
                 
@@ -102,7 +104,13 @@ class Controller:
     def trigger_on_move(self):
         turn = self.board_reader.detect_turn()
         if turn is None:
-            return
+            if (self.board_reader.detect_player_color() == chess.WHITE):
+                turn = chess.WHITE
+            elif (self.board_reader.detect_player_color() == chess.BLACK):
+                turn = chess.BLACK
+            else:
+                return
+
         
         self.board.turn = turn
         
